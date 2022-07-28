@@ -1,20 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <launch>
 
-    <param name = "use_sim_time" value = "true"/>
+    <!-- <param name = "use_sim_time" value = "true"/> -->
 
     <!-- px4 -->
     <include file = "$(find mavros)/launch/px4.launch">
+        <arg name="fcu_url" value="/dev/ttyTHS0:921600"/> 
     </include>
 
 
     <!--mav wrapper-->
     <node name="mav_wrapper_node" pkg="px4_code" type="mav_wrapper_node" output="screen">   
-              
         <param name="mav_frame_id" value="/base_link"/>
-        <param name="world_frame_id" value="map"/>
-        <param name="external_pose_topic" value="/zed2/zed_node/pose"/>
-
+        <param name="world_frame_id" value="/map"/>
+        <param name="external_pose_topic" value="/zedm/zed_node/pose"/>
         <param name="pose_on" value="true"/>
            
     </node>
