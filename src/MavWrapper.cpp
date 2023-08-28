@@ -23,7 +23,7 @@ MavWrapper::MavWrapper():nh("~"){
     mav_init_timeout = ros::Duration(time_out);        
 
     // ros comm 
-    sub_control_pose = nh.subscribe("/mav_wrapper/setpoint_planning",1,&MavWrapper::cb_setpoint,this);
+    sub_control_pose = nh.subscribe("/mav_wrapper/setpoint_planning/position",1,&MavWrapper::cb_setpoint,this);
     sub_mavros_pose = nh.subscribe("/mavros/local_position/pose",1,&MavWrapper::cb_mavros_local_pose,this);
 
     if(is_pose){

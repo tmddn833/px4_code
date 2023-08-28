@@ -18,8 +18,14 @@
     <arg name="gcs_url" default="" />
     <arg name="tgt_system" default="1" />
     <arg name="tgt_component" default="1" />
+    <arg name="pluginlists_yaml" value="$(find mavros)/launch/px4_pluginlists.yaml" />
+    <arg name="config_yaml" value="$(find mavros)/launch/px4_config.yaml" />
+
     <node name="mavros" pkg="mavros" type="mavros_node">
-        <param name="fcu_url" value="$(arg fcu_url)" />
+	<rosparam command='load' file="$(arg config_yaml)" />
+	<rosparam command='load' file="$(arg pluginlists_yaml)" />
+	
+	<param name="fcu_url" value="$(arg fcu_url)" />
         <param name="gcs_url" value="$(arg gcs_url)" />
         <param name="target_system_id" value="$(arg tgt_system)" />
         <param name="target_component_id" value="$(arg tgt_component)" />
