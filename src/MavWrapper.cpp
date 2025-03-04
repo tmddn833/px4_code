@@ -14,6 +14,7 @@ MavWrapper::MavWrapper():nh("~"){
     nh.param<bool>("pose_on",is_pose,true);    
     nh.param<bool>("pose_cov_on",is_cov,false);    
     nh.param<bool>("odom_on",is_odom,false);
+    nh.param<bool>("is_simulation",is_simulation,false);    
 
     nh.param<bool>("no_mavros",no_mavros_mode,false);    
 
@@ -24,6 +25,7 @@ MavWrapper::MavWrapper():nh("~"){
 
     // ros comm 
     sub_control_pose = nh.subscribe("/mav_wrapper/setpoint_planning/position",1,&MavWrapper::cb_setpoint,this);
+    sub_control_setpoint_raw = nh.subscribe("/mav_wrapper/setpoint_planning/setpoint_raw",1,&MavWrapper::cb_setpoint_raw,this);
     sub_mavros_pose = nh.subscribe("/mavros/local_position/pose",1,&MavWrapper::cb_mavros_local_pose,this);
 
     if(is_pose){
@@ -46,6 +48,7 @@ MavWrapper::MavWrapper():nh("~"){
 
     sub_state =nh.subscribe("/mavros/state", 10, &MavWrapper::cb_state,this);
     pub_setpoint = nh.advertise<geometry_msgs::PoseStamped>("/mavros/setpoint_position/local", 10);    
+    pub_setpoint_raw = nh.advertise<mavros_msgs::PositionTarget>("/mavros/setpoint_raw/local", 10);
     
 
 
@@ -67,6 +70,10 @@ MavWrapper::~MavWrapper(){
 void MavWrapper::cb_setpoint(geometry_msgs::PoseStampedConstPtr pose){
     is_planning_received = true;
     pose_des_planner = *pose;
+}
+void MavWrapper::cb_setpoint_raw(mavros_msgs::PositionTargetConstPtr pose){
+    is_planning_raw_received = true;
+    pose_des_setpoint_raw_planner = *pose;
 }
 /**
  * @brief receive px4 state information from mavros  
@@ -141,23 +148,27 @@ void MavWrapper::publish_setpoint(){
             	pub_setpoint.publish(pose_des_keyboard);
 			
 			}
-        else {// planner mode (changed mode)
+        else if (mode == 1){// planner mode (changed mode)
          	pose_des_planner.header.stamp = ros::Time::now();
 			pub_setpoint.publish(pose_des_planner);
 		}
+        else{
+            pose_des_setpoint_raw_planner.header.stamp = ros::Time::now();
+            pub_setpoint_raw.publish(pose_des_setpoint_raw_planner);
+        }
 	}
     else{
         ROS_WARN_ONCE("initialization required. Still no setpoint will be publihsed");
     }
 }
 void MavWrapper::publish_externally_estimated_pose(){          
-    if (is_pose or is_odom)
-    pub_cur_pose.publish(pose_cur);
-    if(is_cov)
-    pub_cur_pose_cov.publish(pose_cov_cur);
+    if (!is_simulation){
+        if (is_pose or is_odom)
+            pub_cur_pose.publish(pose_cur); 
+        if(is_cov)
+        pub_cur_pose_cov.publish(pose_cov_cur);
+    }
     
-
-
 }
 /**
  * @brief modify current desired pose for keyboard input with current UAV position
@@ -256,12 +267,16 @@ bool MavWrapper::swtich_mode_callback(px4_code::SwitchModeRequest & req, px4_cod
     // planning mode requested 
     }else{
         // if there is a planning 
-        if (is_planning_received){
+        if (is_planning_received & (req.mode == 1)){
             mode =1 ;
-            return true;}
+            return true;
+        }
+        else if (is_planning_raw_received & (req.mode == 2)){
+            mode = 2;
+            return true;
+        }
         else{            
             return false;
-        
         }
     }
 }

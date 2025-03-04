@@ -134,6 +134,16 @@ selection-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0.4689
            </property>
           </widget>
          </item>
+         <item>
+          <widget class="QPushButton" name="pushButton_planner_raw">
+           <property name="text">
+            <string>planner_raw</string>
+           </property>
+           <property name="checkable">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
         </layout>
        </item>
       </layout>
@@ -190,7 +200,7 @@ p, li { white-space: pre-wrap; }
      <x>0</x>
      <y>0</y>
      <width>564</width>
-     <height>25</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuPx4_code">

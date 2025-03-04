@@ -38,6 +38,8 @@ private Q_SLOTS:
 
     void on_pushButton_planner_clicked(bool checked);
 
+    void on_pushButton_planner_raw_clicked(bool checked);
+
 protected:
     void keyPressEvent(QKeyEvent* event);
 

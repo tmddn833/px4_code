@@ -38,7 +38,12 @@ int main(int argc, char** argv){
             geometry_msgs::PoseStamped pos_vicon;
         
             pos_vicon.header.stamp = ros::Time::now();
-            pos_vicon.header.frame_id = tf_prefix+"/"+map_frame;
+            if (tf_prefix == ""){
+                pos_vicon.header.frame_id = map_frame;
+            }
+            else{
+                pos_vicon.header.frame_id = tf_prefix+"/"+map_frame;
+            }
             pos_vicon.pose.position.x = transform.getOrigin().getX();
             pos_vicon.pose.position.y = transform.getOrigin().getY();
             pos_vicon.pose.position.z = transform.getOrigin().getZ();

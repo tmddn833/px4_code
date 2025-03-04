@@ -29,6 +29,7 @@ MainWindow::MainWindow(QNode* qnode,QWidget *parent) :
 
     ui->pushButton_keyboard->setChecked(true);
     ui->pushButton_planner->setChecked(false);
+    ui->pushButton_planner_raw->setChecked(false);
 
 
 
@@ -177,12 +178,16 @@ void MainWindow::on_pushButton_keyboard_clicked(bool checked)
         {
             textEdit_write("Init current des pose or mode change failed. Is mav_wrapper running?");         
             ui->pushButton_keyboard->setChecked(false); // release
+            ui->pushButton_planner->setChecked(false);
+            ui->pushButton_planner_raw->setChecked(false);
         }                                        
     }    
     // already checked, but again checked
     else{
         textEdit_write("Aleady checked");           
         ui->pushButton_keyboard->setChecked(true);
+        ui->pushButton_planner->setChecked(false);
+        ui->pushButton_planner_raw->setChecked(false);
     }    
 }
 
@@ -206,6 +211,7 @@ void MainWindow::on_pushButton_planner_clicked(bool checked)
                 srv.request.mode = 1;
                 if(qnode->switch_mode_client.call(srv)){
                     ui->pushButton_planner->setChecked(true);
+                    ui->pushButton_planner_raw->setChecked(false);
                     ui->pushButton_keyboard->setChecked(false);
                 }
                 else{
@@ -230,14 +236,74 @@ void MainWindow::on_pushButton_planner_clicked(bool checked)
         // release the button 
         px4_code::SwitchMode srv;        
         srv.request.mode = 0;
-        if (qnode->switch_mode_client.call(srv)) 
+        if (qnode->switch_mode_client.call(srv)) {
             ui->pushButton_keyboard->setChecked(true);
+            ui->pushButton_planner_raw->setChecked(false);
+            ui->pushButton_planner->setChecked(false);
+        }
         else{
             textEdit_write("Keyboard mode denied.");
             ui->pushButton_planner->setChecked(true);
+            ui->pushButton_keyboard->setChecked(false);
+            ui->pushButton_planner_raw->setChecked(false);
+        }
+    }    
+}
+
+void MainWindow::on_pushButton_planner_raw_clicked(bool checked)
+{
+
+            // first, see if ros connected 
+    bool is_connected = qnode->is_connected;
+    if(checked){
+        // If then,                
+        if (is_connected){                    
+            ros::V_string node_name;
+            // is this node running? If then, we request. 
+            node_name.push_back(qnode->planner_node_name());   
+            bool is_planner_exist = ros::master::getNodes(node_name);       
+            // second, see whether planner node is running      
+            if (is_planner_exist){
+                px4_code::SwitchMode srv;
+                srv.request.mode = 2;
+                if(qnode->switch_mode_client.call(srv)){
+                    ui->pushButton_planner_raw->setChecked(true);
+                    ui->pushButton_planner->setChecked(false);
+                    ui->pushButton_keyboard->setChecked(false);
+                }
+                else{
+                    textEdit_write("Mode change denied. Is planning pose_raw being published?");
+                    ui->pushButton_planner_raw->setChecked(false);
+                }
+            }        
+            else{
+                // request failed 
+                ui->pushButton_planner_raw->setChecked(false);
+                textEdit_write("Planner node not found");           
+            }
+        }
+        else{
+            // request failed
+            ui->pushButton_planner_raw->setChecked(false);
+            textEdit_write("Connect to ros first");
         }
 
 
+    }else{
+        // release the button 
+        px4_code::SwitchMode srv;        
+        srv.request.mode = 0;
+        if (qnode->switch_mode_client.call(srv)) {
+            ui->pushButton_keyboard->setChecked(true);
+            ui->pushButton_planner_raw->setChecked(false);
+            ui->pushButton_planner->setChecked(false);
+        }
+        else{
+            textEdit_write("Keyboard mode denied.");
+            ui->pushButton_planner_raw->setChecked(true);
+            ui->pushButton_keyboard->setChecked(false);
+            ui->pushButton_planner->setChecked(false);
+        }
     }    
-
 }
+

@@ -6,6 +6,7 @@
 #include <mavros_msgs/CommandBool.h>
 #include <mavros_msgs/SetMode.h>
 #include <mavros_msgs/State.h>
+#include <mavros_msgs/PositionTarget.h>
 #include <nav_msgs/Odometry.h>
 #include <px4_code/InitHome.h>
 #include <px4_code/KeyboardInput.h>
@@ -47,6 +48,7 @@ class MavWrapper{
         geometry_msgs::PoseWithCovarianceStamped pose_cov_cur; // current pose of MAV from external unit 
         geometry_msgs::PoseStamped pose_des_keyboard; 
         geometry_msgs::PoseStamped pose_des_planner; 
+        mavros_msgs::PositionTarget pose_des_setpoint_raw_planner; // setpoint_raw from planner
         geometry_msgs::PoseStamped pose_init;
         geometry_msgs::PoseStamped pose_mavros; // mavros local position
 
@@ -56,10 +58,12 @@ class MavWrapper{
         
         ros::Publisher clock_server; //clock server 
         ros::Publisher pub_setpoint; // published merged 
+        ros::Publisher pub_setpoint_raw; // published position and velocity control
         ros::Publisher pub_cur_pose; // publish for vision/pose  
         ros::Publisher pub_cur_pose_cov; // publish for vision/pose also  
 
         ros::Subscriber sub_control_pose; // pose which is to be controlled (planner mode)
+        ros::Subscriber sub_control_setpoint_raw; // setpoint_raw from planner (planner mode)
         ros::Subscriber sub_mavros_pose; // pose 
         ros::Subscriber sub_state; // mav state callback from mavros 
         ros::Subscriber sub_ext_pose;
@@ -102,6 +106,7 @@ class MavWrapper{
 
 
         void cb_setpoint(geometry_msgs::PoseStampedConstPtr pose);
+        void cb_setpoint_raw(mavros_msgs::PositionTargetConstPtr pose);
         void cb_state(mavros_msgs::StateConstPtr state);        
         void cb_mavros_local_pose(geometry_msgs::PoseStampedConstPtr local_pose);        
         // move mav from current pose    
@@ -113,11 +118,13 @@ class MavWrapper{
         bool is_tf_recieved = false;
         bool is_init_mav = false;  // initialized homing point 
         bool is_planning_received  = false;      
+        bool is_planning_raw_received  = false;      
         bool is_mavros_pose_recieved = false;
         
         bool is_cov = false; 
         bool is_pose = true;
         bool is_odom = false;
+        bool is_simulation = false; // is this simulation?
 
 };
 
